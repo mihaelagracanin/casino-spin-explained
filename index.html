@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101616">
+  <meta name="description" content="A visual guide to online slot RNGs, RTP, volatility and the mathematics behind every spin.">
+  <title>Behind the Spin — RNG, RTP &amp; Casino Game Mathematics</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e9eee8;
+      --muted: #a4b0a9;
+      --paper: #151d1b;
+      --page: #101615;
+      --line: #33413c;
+      --lime: #c9ef74;
+      --coral: #ff886d;
+      --blue: #9dc8ff;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 82% 0%, rgba(201, 239, 116, .08), transparent 34rem),
+        var(--page);
+      color: var(--ink);
+      font: 16px/1.7 var(--sans);
+    }
+    a { color: var(--lime); text-underline-offset: .2em; }
+    a:hover { color: #e5ffa5; }
+    .wrap { width: min(1120px, calc(100% - 44px)); margin-inline: auto; }
+    .masthead {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 26px 0; border-bottom: 1px solid var(--line);
+      color: var(--muted); font-size: .73rem; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .brand { display: flex; gap: 10px; align-items: center; color: var(--ink); }
+    .brand-mark { width: 10px; height: 10px; background: var(--lime); border-radius: 50%; box-shadow: 0 0 18px #c9ef7470; }
+    .hero { display: grid; grid-template-columns: 1.08fr .92fr; gap: 4rem; align-items: center; padding: 82px 0 74px; }
+    .eyebrow { color: var(--lime); font-size: .74rem; letter-spacing: .17em; text-transform: uppercase; font-weight: 700; }
+    h1 { max-width: 720px; margin: 18px 0 20px; font: 500 clamp(3rem, 6.4vw, 5.8rem)/.99 var(--serif); letter-spacing: -.055em; }
+    .dek { max-width: 620px; color: #bac5be; font: 1.13rem/1.75 var(--sans); }
+    .byline { margin-top: 28px; color: var(--muted); font-size: .8rem; letter-spacing: .04em; }
+    .hero-art { border: 1px solid var(--line); background: linear-gradient(145deg, #1d2924, #111918 70%); border-radius: 4px; padding: 20px; }
+    .hero-art svg { display: block; width: 100%; height: auto; }
+    .art-caption { color: var(--muted); font-size: .7rem; margin: 9px 5px 0; letter-spacing: .05em; }
+    .article-layout { display: grid; grid-template-columns: 190px minmax(0, 700px); justify-content: space-between; gap: 4rem; padding: 28px 0 80px; border-top: 1px solid var(--line); }
+    .toc { position: sticky; top: 24px; align-self: start; padding-top: 14px; }
+    .toc h2 { margin: 0 0 15px; color: var(--muted); font-size: .68rem; letter-spacing: .15em; text-transform: uppercase; }
+    .toc ol { margin: 0; padding: 0; list-style: none; }
+    .toc li { margin: 0 0 9px; }
+    .toc a { color: var(--muted); text-decoration: none; font-size: .76rem; line-height: 1.4; }
+    .toc a:hover { color: var(--lime); }
+    article { min-width: 0; }
+    article > p, article section > p { color: #c5cec8; }
+    article p { margin: 0 0 1.15rem; }
+    article section { padding: 36px 0 20px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+    article section:first-child { border-top: 0; padding-top: 12px; }
+    h2 { margin: 0 0 18px; font: 500 clamp(1.7rem, 3vw, 2.45rem)/1.13 var(--serif); letter-spacing: -.025em; }
+    h3 { margin: 0 0 8px; color: var(--ink); font-size: 1rem; }
+    .num { display: block; margin-bottom: 8px; color: var(--lime); font: 700 .7rem var(--sans); letter-spacing: .13em; }
+    .callout { margin: 25px 0; padding: 17px 20px; border-left: 2px solid var(--lime); background: #1c2721; color: #dce5dc; }
+    .callout strong { color: var(--lime); }
+    .visual { margin: 24px 0 25px; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: 3px; }
+    .visual-title { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 17px; font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+    .visual-title strong { color: var(--ink); }
+    .splitbar { display: flex; height: 22px; overflow: hidden; border-radius: 2px; }
+    .splitbar .return { width: 96%; background: var(--lime); }
+    .splitbar .edge { width: 4%; background: var(--coral); }
+    .legend { display: flex; justify-content: space-between; gap: 1rem; margin-top: 13px; font-size: .82rem; }
+    .legend span:first-child { color: var(--lime); }
+    .legend span:last-child { color: var(--coral); text-align: right; }
+    .big-stat { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+    .stat { padding: 16px; background: #1b2521; }
+    .stat b { display: block; color: var(--lime); font: 500 2rem var(--serif); }
+    .stat span { color: var(--muted); font-size: .78rem; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: .86rem; }
+    th, td { padding: 12px 13px; text-align: left; border-bottom: 1px solid var(--line); }
+    th { color: var(--lime); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+    td { color: #c5cec8; }
+    .volatility { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+    .vol-card { padding: 16px 14px; min-height: 155px; border: 1px solid var(--line); background: #1a2420; }
+    .vol-card:nth-child(2) { border-top: 2px solid var(--blue); }
+    .vol-card:nth-child(1) { border-top: 2px solid var(--lime); }
+    .vol-card:nth-child(3) { border-top: 2px solid var(--coral); }
+    .vol-card p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
+    .vol-card h3 { font: 500 1.2rem var(--serif); }
+    .note { color: var(--muted); font-size: .77rem; }
+    .process { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; margin: 22px 0; }
+    .process div { position: relative; padding: 17px 13px; background: #1b2521; text-align: center; font-size: .8rem; color: #d3ddd5; }
+    .process div:not(:last-child)::after { content: "→"; position: absolute; z-index: 1; right: -13px; top: 50%; transform: translateY(-50%); color: var(--lime); font-size: 1.1rem; }
+    .process b { display: block; margin-bottom: 5px; color: var(--lime); font-size: .67rem; text-transform: uppercase; letter-spacing: .09em; }
+    blockquote { margin: 34px 0; padding: 6px 0 6px 22px; border-left: 2px solid var(--coral); color: var(--ink); font: italic 1.55rem/1.35 var(--serif); }
+    .source { margin-top: 15px; padding-top: 17px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
+    .source a { color: #b6d6ff; }
+    .note-card { margin: 10px 0 0; padding: 23px; border: 1px dashed #596860; background: #141c19; }
+    .note-card h2 { font-size: 1.5rem; }
+    .note-card p { margin: 0 0 9px; font-size: .84rem; color: var(--muted); }
+    .placeholder { color: var(--lime); }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 42px; color: var(--muted); font-size: .75rem; }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; gap: 26px; padding: 54px 0 45px; }
+      .hero-art { max-width: 520px; }
+      .article-layout { grid-template-columns: 1fr; gap: 22px; padding-top: 15px; }
+      .toc { position: static; padding: 12px 0 18px; border-bottom: 1px solid var(--line); }
+      .toc ol { display: flex; flex-wrap: wrap; gap: 8px 15px; }
+      .toc li { margin: 0; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: min(100% - 30px, 1120px); }
+      .masthead { font-size: .62rem; }
+      .hero { padding-top: 42px; }
+      .visual { padding: 16px; }
+      .volatility { grid-template-columns: 1fr; }
+      .vol-card { min-height: 0; }
+      .process { grid-template-columns: 1fr; }
+      .process div:not(:last-child)::after { content: "↓"; top: auto; bottom: -16px; right: 50%; transform: translateX(50%); }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      :root { color-scheme: light; --ink: #18211d; --muted: #46534c; --paper: #f4f6f2; --page: #fff; --line: #ccd4ce; }
+      body { background: white; color: #18211d; }
+      .toc { display: none; }
+      .article-layout { display: block; }
+      .hero-art, .visual, .vol-card, .callout, .note-card { break-inside: avoid; }
+      a { color: #234f31; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap masthead">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span> The probability desk</div>
+    <span>Games · Explained</span>
+  </header>
+
+  <main>
+    <header class="wrap hero">
+      <div>
+        <div class="eyebrow">A guide to the mathematics of games</div>
+        <h1>What really happens behind an online casino spin?</h1>
+        <p class="dek">RNG, RTP and volatility shape what happens behind the reels. Here’s what those numbers explain—and what they can’t promise.</p>
+        <div class="byline">A closer look at randomness, game design and probability</div>
+      </div>
+      <figure class="hero-art">
+        <svg viewBox="0 0 520 340" role="img" aria-labelledby="art-title art-desc" xmlns="http://www.w3.org/2000/svg">
+          <title id="art-title">Inside a random game outcome</title>
+          <desc id="art-desc">A flow diagram showing a random number generator feeding a game outcome, represented by three abstract reels.</desc>
+          <defs>
+            <linearGradient id="glow" x1="0" x2="1"><stop stop-color="#c9ef74"/><stop offset="1" stop-color="#9dc8ff"/></linearGradient>
+          </defs>
+          <path d="M25 168H180M340 168H495" stroke="#52635a" stroke-width="2" stroke-dasharray="5 8"/>
+          <circle cx="92" cy="168" r="52" fill="#202c26" stroke="#718269"/>
+          <circle cx="92" cy="168" r="37" fill="none" stroke="#c9ef74" stroke-width="2" stroke-dasharray="3 5"/>
+          <text x="92" y="160" fill="#c9ef74" text-anchor="middle" font-family="system-ui" font-size="12" letter-spacing="2">RNG</text>
+          <text x="92" y="181" fill="#dce5dc" text-anchor="middle" font-family="system-ui" font-size="10">random value</text>
+          <rect x="181" y="82" width="158" height="172" rx="8" fill="#121a17" stroke="#52635a"/>
+          <text x="260" y="63" fill="#a4b0a9" text-anchor="middle" font-family="system-ui" font-size="10" letter-spacing="2">GAME MAPPING</text>
+          <g font-family="Georgia,serif" text-anchor="middle" font-size="31">
+            <rect x="194" y="101" width="40" height="136" rx="4" fill="#1e2924" stroke="#33413c"/>
+            <rect x="240" y="101" width="40" height="136" rx="4" fill="#1e2924" stroke="#33413c"/>
+            <rect x="286" y="101" width="40" height="136" rx="4" fill="#1e2924" stroke="#33413c"/>
+            <text x="214" y="151" fill="#9dc8ff">◆</text><text x="260" y="151" fill="#c9ef74">✦</text><text x="306" y="151" fill="#ff886d">●</text>
+            <text x="214" y="204" fill="#718078">✦</text><text x="260" y="204" fill="#718078">●</text><text x="306" y="204" fill="#718078">◆</text>
+          </g>
+          <circle cx="428" cy="168" r="48" fill="#202c26" stroke="url(#glow)" stroke-width="2"/>
+          <path d="M409 168l13 13 27-30" fill="none" stroke="#c9ef74" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="260" y="294" fill="#a4b0a9" text-anchor="middle" font-family="system-ui" font-size="11">The reel animation shows the result; it doesn’t decide it.</text>
+        </svg>
+        <figcaption class="art-caption">A simplified illustration of how a game can map a generated value to a visual result.</figcaption>
+      </figure>
+    </header>
+
+    <div class="wrap article-layout">
+      <nav class="toc" aria-label="Article contents">
+        <h2>In this article</h2>
+        <ol>
+          <li><a href="#spin">01 · The spin</a></li>
+          <li><a href="#rng">02 · RNG &amp; testing</a></li>
+          <li><a href="#rtp">03 · RTP</a></li>
+          <li><a href="#edge">04 · House edge</a></li>
+          <li><a href="#volatility">05 · Volatility</a></li>
+          <li><a href="#due">06 · “Due” for a win?</a></li>
+          <li><a href="#why">07 · Why it matters</a></li>
+        </ol>
+      </nav>
+
+      <article>
+        <p>You press spin. The reels start moving, symbols flash across the screen, and for a moment, anything seems possible. Maybe this is the round that brings a big win. Maybe it’s another near miss. But have you ever wondered what happens between clicking that button and seeing the final result?</p>
+        <p>Behind online casino games are algorithms, probability and mathematics. They determine which symbols appear, how often combinations occur and how much a game is theoretically designed to return.</p>
+        <p>From Random Number Generators and RTP to game volatility and winning streaks, here’s a closer look at what happens behind every spin—and why some familiar casino myths don’t hold up.</p>
+
+        <section id="spin">
+          <span class="num">01 / THE OUTCOME</span>
+          <h2>What happens when you press spin?</h2>
+          <p>The spinning reels might be the most recognisable part of an online slot, but they are not what determines the outcome. When a player initiates a round, the game’s Random Number Generator (RNG) produces a number or sequence of numbers. The game software uses those values to determine the result, translating them into symbols, combinations and potential payouts.</p>
+          <div class="process" role="img" aria-label="Three steps: a round is initiated, the game generates a random value, and the software maps it to a result shown on screen.">
+            <div><b>Step 1</b>Round initiated</div><div><b>Step 2</b>RNG produces value</div><div><b>Step 3</b>Game displays result</div>
+          </div>
+          <p>The reels are the visual presentation of that process. This distinction challenges a common misconception: that a game remembers previous rounds and adjusts the next result. A properly functioning independent RNG does not make a future result more likely because the previous ten spins were unsuccessful, or less likely because a jackpot just happened.</p>
+          <p>Think about a coin toss. Getting five tails in a row does not make heads more likely on the sixth attempt. The same basic principle of independent probability helps explain how properly designed RNG-based games operate. A run of wins or a long losing streak can both occur in a random sequence; neither proves that a game is compensating for earlier results.</p>
+        </section>
+
+        <section id="rng">
+          <span class="num">02 / RANDOMNESS &amp; OVERSIGHT</span>
+          <h2>What is an RNG, and how do we know it works?</h2>
+          <p>A Random Number Generator is a software mechanism designed to produce numbers without a predictable pattern. In online casino gaming, RNGs determine game outcomes. Without reliable randomisation, results could potentially be predictable or biased.</p>
+          <p>Generating numbers that look random is different from demonstrating that a game meets technical standards. In regulated markets, independent testing laboratories examine game software and its underlying mathematics. Depending on the applicable requirements, assessments can include:</p>
+          <ul>
+            <li>Reviewing the RNG’s implementation and source code.</li>
+            <li>Running statistical tests on generated numbers.</li>
+            <li>Checking whether results follow the intended probability distribution.</li>
+            <li>Examining the game’s mathematical model, payout calculations and documented rules.</li>
+          </ul>
+          <p>For example, the UK Gambling Commission requires applicable remote gambling games to be tested by approved test houses. This provides a way to assess whether software operates according to its specifications—it is not a guarantee of any individual result.</p>
+          <p>An independently tested game can still produce a long sequence of losing rounds without that sequence alone indicating a technical problem. Randomness does not mean every player sees a balanced distribution of wins and losses during a short session.</p>
+          <div class="source">Reference: <a href="https://www.gamblingcommission.gov.uk/licensees-and-businesses/guide/remote-gambling-and-software-technical-standards">UK Gambling Commission — Remote gambling and software technical standards</a>. Requirements vary by jurisdiction.</div>
+        </section>
+
+        <section id="rtp">
+          <span class="num">03 / THE LONG-RUN FIGURE</span>
+          <h2>RTP: what does the percentage really tell you?</h2>
+          <p>RTP, or Return to Player, is a theoretical figure describing how much a game is designed to return across a very large number of rounds. A game displaying 96% RTP is designed, in the long-run mathematical model, to return €96 for every €100 wagered.</p>
+          <div class="visual" role="img" aria-label="Illustration of the theoretical 96 percent return to player and 4 percent house edge on 100 euros wagered, measured over a very large number of rounds, not an individual session.">
+            <div class="visual-title"><strong>A theoretical model</strong><span>Not an individual session</span></div>
+            <div class="splitbar"><span class="return"></span><span class="edge"></span></div>
+            <div class="legend"><span>€96 · theoretical player return</span><span>€4 · theoretical house edge</span></div>
+            <div class="note" style="margin-top:16px">Illustration based on €100 in total wagers over a sufficiently large number of rounds.</div>
+          </div>
+          <p>The confusion starts when RTP is interpreted as a prediction of what will happen to one person’s money. It isn’t. Two players choosing the same game with the same starting balance can have very different experiences. One could finish ahead; another could lose their balance quickly. Both outcomes can be compatible with the game’s mathematical model.</p>
+          <p>RTP describes the expected return across a very large sample, not what an individual should receive after 20, 50 or even 500 spins. There is no mechanism that guarantees a particular player will get the displayed percentage back. It’s a theoretical characteristic of the game—not a personal repayment promise.</p>
+        </section>
+
+        <section id="edge">
+          <span class="num">04 / TWO SIDES OF A CALCULATION</span>
+          <h2>RTP vs. house edge</h2>
+          <p>RTP and house edge are connected. One describes the theoretical return to players; the other represents the proportion of wagers a casino is mathematically expected to retain over time.</p>
+          <div class="big-stat">
+            <div class="stat"><b>96%</b><span>Return to Player</span></div>
+            <div class="stat"><b>4%</b><span>Theoretical house edge</span></div>
+          </div>
+          <p>This relationship can help compare theoretical payout structures. For example, a 97% RTP corresponds to a lower theoretical house edge than a 94% RTP, assuming the figures are calculated on the same basis. But higher RTP does not automatically mean more frequent wins, larger jackpots or shorter losing streaks. To understand why, volatility matters too.</p>
+        </section>
+
+        <section id="volatility">
+          <span class="num">05 / HOW RESULTS ARE DISTRIBUTED</span>
+          <h2>Why do some slots feel completely different?</h2>
+          <p>Two games can have the same RTP and still produce very different patterns of results. One might deliver relatively frequent small wins; another could produce longer periods without a significant payout, followed by a larger combination.</p>
+          <p>Volatility, sometimes called variance, describes how widely results are distributed around their expected return. It is commonly discussed in three broad categories:</p>
+          <div class="volatility">
+            <div class="vol-card"><h3>Low</h3><p>Generally more frequent wins, with smaller individual payouts. Frequent wins do not necessarily mean a player is making a profit.</p></div>
+            <div class="vol-card"><h3>Medium</h3><p>A middle ground that may combine smaller, more frequent wins with occasional larger combinations.</p></div>
+            <div class="vol-card"><h3>High</h3><p>Potentially less frequent but larger payouts, with longer periods possible between significant wins.</p></div>
+          </div>
+          <p class="note">These are general descriptions. Actual payout distributions differ between games, and providers do not all present volatility using one universal measurement.</p>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Feature</th><th>Slot A</th><th>Slot B</th></tr></thead>
+              <tbody>
+                <tr><td>RTP</td><td>96%</td><td>96%</td></tr>
+                <tr><td>Volatility</td><td>Low</td><td>High</td></tr>
+                <tr><td>Typical pattern</td><td>More frequent, smaller wins</td><td>Less frequent, larger wins</td></tr>
+                <tr><td>Balance fluctuations</td><td>Generally smaller</td><td>Potentially larger</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Neither game has a higher theoretical return simply because of its volatility classification. The difference is how that return is distributed. RTP alone can’t tell you everything about a game.</p>
+        </section>
+
+        <section id="due">
+          <span class="num">06 / A COMMON MISCONCEPTION</span>
+          <h2>Can a slot be “due” for a win?</h2>
+          <p>The idea that a slot becomes more likely to pay out after a long losing streak is often associated with the gambler’s fallacy: the mistaken assumption that previous independent random outcomes influence the probability of the next one.</p>
+          <p>After 30 unsuccessful spins, it can feel as though a winning combination must be approaching. But for standard independent RNG-based rounds, that history does not itself change the probability of the next result. The same applies after a significant win: it does not automatically make another win less likely.</p>
+          <div class="callout"><strong>Worth remembering:</strong> Some games have bonus rounds, progressive jackpots or game states that affect available outcomes. Check the rules for the specific game; don’t assume every mechanic is identical.</div>
+          <p>For standard independent RNG-based rounds, a losing streak does not create an advantage on the next spin.</p>
+        </section>
+
+        <section id="why">
+          <span class="num">07 / THE BIGGER PICTURE</span>
+          <h2>Why these numbers matter</h2>
+          <p>RNG, RTP and volatility are more than technical terms hidden in game information screens. Together, they help explain how digital casino products are designed, tested and presented.</p>
+          <p>Understanding them makes it easier to recognise misleading assumptions: a high RTP is not a guarantee of winnings, high volatility is not necessarily more rewarding, and a sequence of losses does not mean a payout is overdue. For operators and developers, these characteristics inform game design, payout structures, technical testing and product descriptions.</p>
+          <p>Transparency matters, too. Players should be able to access relevant information about a game’s rules, theoretical RTP and features. In regulated markets, independent testing and technical standards provide an additional layer of oversight, though requirements differ between jurisdictions.</p>
+          <blockquote>“The mathematics does not make the outcome predictable. It explains why it isn’t.”</blockquote>
+          <h2>The mathematics behind the screen</h2>
+          <p>Online casino games may look unpredictable from the outside, but their underlying systems are built around defined mathematical models. RNGs determine individual outcomes. RTP describes theoretical long-term return. Volatility helps explain how returns are distributed across rounds.</p>
+          <p>Knowing how a game works does not give anyone control over its next result, but it can make it harder to confuse probability with a promise. Randomness is part of the game. Understanding it should be part of playing it.</p>
+        </section>
+
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">An explanatory article about probability and game mechanics. No outcome is guaranteed; rules and regulation vary by jurisdiction.</div>
+  </footer>
+</body>
+</html>
